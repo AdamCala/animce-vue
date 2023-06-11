@@ -15,6 +15,10 @@
 </template>
 
 <style>
+
+h1 { color: #ea80fc; font-family: 'Righteous', cursive; font-size: 65px; font-weight: normal; line-height: 60px; margin: 10px 0 20px; text-transform: uppercase; text-shadow: 2px 2px 0 #000; text-align: center; }
+
+
 .scoreboard {
     display: flex;
     flex-direction: column;
