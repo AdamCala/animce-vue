@@ -19,13 +19,19 @@
         </div>
       </div>
       <div class="menu">
-        <select v-model="selectedQueueItem">
-          <option value="">Select Queue Item</option>
-          <option v-for="(item, index) in queue" :value="index" :key="index">
-            {{ index + 1 }}. {{ item.nazwa_animca }} - {{ item.nazwa_piosenki }}
-          </option>
-        </select>
-        <button @click="removeSelectedSongFromQueue" v-if="selectedQueueItem !== null">Remove from Queue</button>
+        <button @click="toggleQueue">Show/Hide Queue</button>
+      </div>
+      <div v-show="showQueue" id="queueue">
+        <div class="queue-item" v-for="(item, index) in queue" :key="index">
+          
+          <input type="checkbox" v-model="selectedQueueItems" :value="index" />
+          <p>{{ index + 1 }}. {{ item.nazwa_animca }} - {{ item.nazwa_piosenki }}</p>
+          <div class="queue-buttons">
+            <button @click="moveQueueItemUp(index)" :disabled="index === 0">&#9650;</button>
+            <button @click="moveQueueItemDown(index)" :disabled="index === queue.length - 1">&#9660;</button>
+          </div>
+        </div> 
+        <button @click="removeSelectedSongsFromQueue" v-if="selectedQueueItems.length > 0">Remove Selected Songs</button>
       </div>
       <button v-if="queue.length > 0" @click="handleSongEnded">Next Song</button>
       <div v-if="selectedSong">
@@ -33,6 +39,7 @@
       </div>
     </div>
   </template>
+  
   
 
 <style>
@@ -62,6 +69,19 @@
     button {
         margin-right: 10px;
     }
+    #queueue{
+        display: flex;
+        flex-direction: column;
+    }
+    .queue-item{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    p{
+        color: #ea80fc; 
+    }
 </style>
 
 <script>
@@ -81,6 +101,8 @@
                 previousSongs: [],
                 randomFactor: 7,
                 queue: [],
+                showQueue: false,
+                selectedQueueItems: [],
             };
         },
         mounted() {
@@ -154,16 +176,33 @@
 
                 }
             },
-            removeSelectedSongFromQueue() {
-                if (this.selectedQueueItem !== null) {
-                this.queue.splice(this.selectedQueueItem, 1);
-                if (this.queue.length > 0) {
-                    this.selectedSongId = this.queue[0].id.toString();
-                } else {
-                    this.selectedSongId = "";
-                }
+            toggleQueue() {
+                this.showQueue = !this.showQueue;
+            },
+            removeSelectedSongsFromQueue() {
+                if (this.selectedQueueItems.length > 0 && this.queue.length > 0) {
+                    this.selectedQueueItems.sort((a, b) => b - a); // Sort indices in descending order
+                    for (const index of this.selectedQueueItems) {
+                    this.queue.splice(index, 1);
+                    }
+                    this.selectedQueueItems = [];
                 }
             },
+            moveQueueItemUp(index) {
+            if (index > 0) {
+                const temp = this.queue[index - 1];
+                this.queue[index - 1] = this.queue[index];
+                this.queue[index] = temp;
+            }
+            },
+
+            moveQueueItemDown(index) {
+            if (index < this.queue.length - 1) {
+                const temp = this.queue[index + 1];
+                this.queue[index + 1] = this.queue[index];
+                this.queue[index] = temp;
+            }
+            }
         },
     };
 </script>
