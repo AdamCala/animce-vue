@@ -1,8 +1,23 @@
 [
-    {
-        "id": 4,
-        "nazwa_piosenki ": "d",
-        "difficulty": "0",
-        "plays": "2"
-    }
+  {
+    "id": 1,
+    "nazwa_piosenki": "Song 1",
+    "nazwa_animca": "Animation 1",
+    "difficulty": "Easy",
+    "plays": 3
+  },
+  {
+    "id": 2,
+    "nazwa_piosenki": "Song 2",
+    "nazwa_animca": "Animation 2",
+    "difficulty": "Medium",
+    "plays": 5
+  },
+  {
+    "id": 3,
+    "nazwa_piosenki": "Song 3",
+    "nazwa_animca": "Animation 3",
+    "difficulty": "Hard",
+    "plays": 2
+  }
 ]

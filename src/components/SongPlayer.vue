@@ -1,6 +1,6 @@
 <template>
     <div id="amogus">
-        <h2>{{ song.nazwa_piosenki }} - {{ song.wykonawca }}</h2>
+        <h2>{{ song.nazwa_piosenki }} - {{ song.wykonawca }} - {{ getDifficultyLabel(song.difficulty) }}</h2>
         <canvas ref="visualizerCanvas" width="1920" height="200"></canvas>
         <audio class="audio-player" ref="player" :src="songURL" controls @ended="handleSongEnded" autoplay></audio>
     </div>
@@ -144,6 +144,9 @@ export default {
     handleSongEnded() {
         console.log('Song ended');
         this.$emit('ended');
+    },
+    getDifficultyLabel(difficulty) {
+      return difficulty === 0 ? 'Easy' : 'Hard';
     }
   },
 };

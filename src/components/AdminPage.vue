@@ -8,13 +8,13 @@
         <div class="menu">
           <select v-model="selectedSongId" @change="playSelectedSong(selectedSongId)">
             <option value="">Select Song by ID</option>
-            <option v-for="song in songs" :value="song.id.toString()" :key="song.id">Play {{ song.nazwa_piosenki }}</option>
+            <option v-for="song in songs" :value="song.id.toString()" :key="song.id">Play {{ song.nazwa_animca }} - {{ song.nazwa_piosenki }} - ({{ getDifficultyLabel(song.difficulty) }})</option>
           </select>
         </div>
         <div class="menu">
           <select v-model="queueSongId" @change="addToQueue(queueSongId)">
             <option value="">Select Song to Queue</option>
-            <option v-for="song in songs" :value="song.id.toString()" :key="song.id">Queue {{ song.nazwa_piosenki }}</option>
+            <option v-for="song in songs" :value="song.id.toString()" :key="song.id">Queue {{ song.nazwa_animca }} - {{ song.nazwa_piosenki }} - ({{ getDifficultyLabel(song.difficulty) }})</option>
           </select>
         </div>
       </div>
@@ -23,16 +23,14 @@
       </div>
       <div v-show="showQueue" id="queueue">
         <div class="queue-item" v-for="(item, index) in queue" :key="index">
-          
-          <input type="checkbox" v-model="selectedQueueItems" :value="index" />
-          <p>{{ index + 1 }}. {{ item.nazwa_animca }} - {{ item.nazwa_piosenki }}</p>
-          <div class="queue-buttons">
+            <p>{{ index + 1 }}. {{ item.nazwa_animca }} - {{ item.nazwa_piosenki }} - ({{ getDifficultyLabel(item.difficulty) }})</p>
+            <div class="queue-buttons">
             <button @click="moveQueueItemUp(index)" :disabled="index === 0">&#9650;</button>
             <button @click="moveQueueItemDown(index)" :disabled="index === queue.length - 1">&#9660;</button>
-          </div>
-        </div> 
-        <button @click="removeSelectedSongsFromQueue" v-if="selectedQueueItems.length > 0">Remove Selected Songs</button>
-      </div>
+            <button @click="removeSongFromQueue(index)">Delete</button> <!-- New button for deleting individual song -->
+            </div>
+        </div>
+    </div>
       <button v-if="queue.length > 0" @click="handleSongEnded">Next Song</button>
       <div v-if="selectedSong">
         <song-player :song="selectedSong" @play="setIsPlaying(true)" @pause="setIsPlaying(false)" @ended="handleSongEnded"/>
@@ -124,6 +122,9 @@
             },
         },
         methods: {
+            getDifficultyLabel(difficulty) {
+                return difficulty === 0 ? 'Easy' : 'Hard';
+            },
             playRandomSong() {
                 if (this.songs.length > 0) {
                     let randomIndex;
@@ -134,6 +135,65 @@
                     this.selectedSongId = this.songs[randomIndex].id.toString();
                     this.updatePreviousSongs(this.songs[randomIndex].id.toString());
                 }
+                    const selectedSong = this.songs.find((song) => song.id.toString() === this.selectedSongId);
+
+                    fetch('http://localhost:3000/readFile')
+                    .then(response => response.json())
+                    .then(data => {
+                    console.log(data);
+                    const existingSong = data.find((song) => song.id === selectedSong.id);
+
+                    if (existingSong) {
+                        // Increment "plays" value if the song exists
+                        existingSong.plays += 1;
+
+                        // Update the song in the JSON file
+                        fetch('http://localhost:3000/writeFile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                        })
+                        .then(() => {
+                            console.log('Song updated in the JSON file');
+                        })
+                        .catch((error) => {
+                            console.error('Error updating song:', error);
+                        });
+                    } else {
+                        // Create a new record for the song if it doesn't exist
+                        const newSong = {
+                        id: selectedSong.id,
+                        nazwa_piosenki: selectedSong.nazwa_piosenki,
+                        nazwa_animca: selectedSong.nazwa_animca,
+                        difficulty: selectedSong.difficulty,
+                        plays: 1
+                        };
+
+                        // Add the new song to the JSON file
+                        data.push(newSong);
+
+                        // Update the JSON file with the new song
+                        fetch('http://localhost:3000/writeFile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                        })
+                        .then(() => {
+                            console.log('New song added to the JSON file');
+                        })
+                        .catch((error) => {
+                            console.error('Error adding new song:', error);
+                        });
+                    }
+                    })
+                    .catch((error) => {
+                    console.error('Error retrieving song data:', error);
+                    });
+
             },
             isPreviousSong(songId) {
                 return this.previousSongs.includes(songId);
@@ -147,8 +207,67 @@
             playSelectedSong(songId) {
                 const selectedSong = this.songs.find((song) => song.id.toString() === songId);
                 if (selectedSong) {
-                    console.log("Playing selected song:", selectedSong);
-                    // Additional logic for playing the selected song
+                console.log("Playing selected song:", selectedSong);
+
+                // Check if the song already exists in the JSON file
+                fetch('http://localhost:3000/readFile')
+                    .then(response => response.json())
+                    .then(data => {
+                    console.log(data);
+                    const existingSong = data.find((song) => song.id === selectedSong.id);
+
+                    if (existingSong) {
+                        // Increment "plays" value if the song exists
+                        existingSong.plays += 1;
+
+                        // Update the song in the JSON file
+                        fetch('http://localhost:3000/writeFile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                        })
+                        .then(() => {
+                            console.log('Song updated in the JSON file');
+                        })
+                        .catch((error) => {
+                            console.error('Error updating song:', error);
+                        });
+                    } else {
+                        // Create a new record for the song if it doesn't exist
+                        const newSong = {
+                        id: selectedSong.id,
+                        nazwa_piosenki: selectedSong.nazwa_piosenki,
+                        nazwa_animca: selectedSong.nazwa_animca,
+                        difficulty: selectedSong.difficulty,
+                        plays: 1
+                        };
+
+                        // Add the new song to the JSON file
+                        data.push(newSong);
+
+                        // Update the JSON file with the new song
+                        fetch('http://localhost:3000/writeFile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                        })
+                        .then(() => {
+                            console.log('New song added to the JSON file');
+                        })
+                        .catch((error) => {
+                            console.error('Error adding new song:', error);
+                        });
+                    }
+                    })
+                    .catch((error) => {
+                    console.error('Error retrieving song data:', error);
+                    });
+
+                // Additional logic for playing the selected song
                 }
             },
             addToQueue(songId) {
@@ -173,20 +292,73 @@
                     this.selectedSongId = this.queue[0].id.toString();
                     this.updatePreviousSongs(this.queue[0].id.toString());
                     this.queue.shift(); // Remove the first item from the queue
+                    const selectedSong = this.songs.find((song) => song.id.toString() === this.selectedSongId);
+
+                    fetch('http://localhost:3000/readFile')
+                    .then(response => response.json())
+                    .then(data => {
+                    console.log(data);
+                    const existingSong = data.find((song) => song.id === selectedSong.id);
+
+                    if (existingSong) {
+                        // Increment "plays" value if the song exists
+                        existingSong.plays += 1;
+
+                        // Update the song in the JSON file
+                        fetch('http://localhost:3000/writeFile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                        })
+                        .then(() => {
+                            console.log('Song updated in the JSON file');
+                        })
+                        .catch((error) => {
+                            console.error('Error updating song:', error);
+                        });
+                    } else {
+                        // Create a new record for the song if it doesn't exist
+                        const newSong = {
+                        id: selectedSong.id,
+                        nazwa_piosenki: selectedSong.nazwa_piosenki,
+                        nazwa_animca: selectedSong.nazwa_animca,
+                        difficulty: selectedSong.difficulty,
+                        plays: 1
+                        };
+
+                        // Add the new song to the JSON file
+                        data.push(newSong);
+
+                        // Update the JSON file with the new song
+                        fetch('http://localhost:3000/writeFile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                        })
+                        .then(() => {
+                            console.log('New song added to the JSON file');
+                        })
+                        .catch((error) => {
+                            console.error('Error adding new song:', error);
+                        });
+                    }
+                    })
+                    .catch((error) => {
+                    console.error('Error retrieving song data:', error);
+                    });
+
 
                 }
             },
             toggleQueue() {
                 this.showQueue = !this.showQueue;
             },
-            removeSelectedSongsFromQueue() {
-                if (this.selectedQueueItems.length > 0 && this.queue.length > 0) {
-                    this.selectedQueueItems.sort((a, b) => b - a); // Sort indices in descending order
-                    for (const index of this.selectedQueueItems) {
-                    this.queue.splice(index, 1);
-                    }
-                    this.selectedQueueItems = [];
-                }
+            removeSongFromQueue(index) {
+                this.queue.splice(index, 1);
             },
             moveQueueItemUp(index) {
             if (index > 0) {
