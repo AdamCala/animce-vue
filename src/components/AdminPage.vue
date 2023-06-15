@@ -100,7 +100,6 @@
                 randomFactor: 7,
                 queue: [],
                 showQueue: false,
-                selectedQueueItems: [],
             };
         },
         mounted() {
@@ -112,6 +111,8 @@
                 .catch((error) => {
                     console.error(error);
                 });
+            console.log('Mounted hook called');
+            this.fetchQueue();
         },
         computed: {
             selectedSong() {
@@ -120,8 +121,44 @@
             selectedQueueItem() {
                 return this.queue.length > 0 ? 0 : null;
             },
+            updateQueue() {
+                return async () => {
+                    const newData = {
+                        queue: this.queue
+                    };
+
+                    try {
+                    const response = await fetch('http://localhost:3000/writeQueue', {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(newData)
+                    });
+
+                    // Handle the response from the server
+                    console.log(await response.text());
+                    } catch (error) {
+                    // Handle any errors that occur during the request
+                    console.error(error);
+                    }
+                };
+            }
         },
         methods: {
+            async fetchQueue() {
+                try {
+                    const response = await fetch('http://localhost:3000/readQueue');
+                    
+                    const data = await response.json();
+                    console.log('data');
+                    console.log(data);
+                    this.queue = data.queue;
+                    console.log('Queue:', this.queue);
+                } catch (error) {
+                    console.error(error);
+                }
+            },
             getDifficultyLabel(difficulty) {
                 return difficulty === 0 ? 'Easy' : 'Hard';
             },
@@ -275,6 +312,7 @@
                 if (song) {
                     this.queue.push(song);
                 }
+                this.updateQueue();
             },
             pauseSong() {
                 console.log("Pausing the song");
@@ -359,13 +397,15 @@
             },
             removeSongFromQueue(index) {
                 this.queue.splice(index, 1);
+                this.updateQueue();
             },
             moveQueueItemUp(index) {
             if (index > 0) {
                 const temp = this.queue[index - 1];
                 this.queue[index - 1] = this.queue[index];
                 this.queue[index] = temp;
-            }
+                this.updateQueue();
+                }
             },
 
             moveQueueItemDown(index) {
@@ -373,7 +413,8 @@
                 const temp = this.queue[index + 1];
                 this.queue[index + 1] = this.queue[index];
                 this.queue[index] = temp;
-            }
+                this.updateQueue();
+                }
             }
         },
     };

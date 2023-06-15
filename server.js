@@ -50,6 +50,43 @@ app.post('/writeFile', (req, res) => {
       res.send('File updated successfully');
     });
   });
+
+  app.get('/readQueue', (req, res) => {
+    const filePath = path.join(__dirname, 'src/assets', 'queue.json');
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+        console.error(err);
+        res.status(500).send('Error reading file');
+        return;
+        }
+
+        res.send(data);
+    });
+});
+
+app.post('/writeQueue', (req, res) => {
+    const filePath = path.join(__dirname, 'src/assets', 'queue.json');
+    const newData = req.body; // Assuming the new data is sent in the request body
+    
+    // Check if the newData is valid JSON
+    if (!newData) {
+      res.status(400).send('Invalid JSON data');
+      return;
+    }
+    
+    // Convert the newData to a JSON string
+    const jsonData = JSON.stringify(newData);
+    
+    fs.writeFile(filePath, jsonData, 'utf8', (err) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Error writing to file');
+        return;
+      }
+    
+      res.send('File updated successfully');
+    });
+});
   
 
 app.listen(port, () => {
