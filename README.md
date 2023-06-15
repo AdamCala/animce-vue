@@ -1,24 +1,17 @@
-# animce-stacha-v5.6
+# animce-v5.6
+
+aka najgorsza apka w historii
 
 ## Project setup
 ```
 npm install
-```
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
 npm run build
-```
 
-### Lints and fixes files
-```
-npm run lint
-```
+node server.js
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+animce.xlsx to placeholder tak samo weeby.xlsx
+graczy dodaje sie do weeby.xlsx tam tez dodajesz punkty
+
+
+```
