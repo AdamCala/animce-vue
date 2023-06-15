@@ -103,6 +103,7 @@
             };
         },
         mounted() {
+            console.log('Mounted hook called');
             // Call the API endpoint to process the Excel file
             processExcelFile()
                 .then((data) => {
@@ -111,8 +112,12 @@
                 .catch((error) => {
                     console.error(error);
                 });
-            console.log('Mounted hook called');
+        },
+        beforeMount(){
             this.fetchQueue();
+        },
+        created(){
+            console.log('Created hook called');
         },
         computed: {
             selectedSong() {
@@ -388,7 +393,7 @@
                     .catch((error) => {
                     console.error('Error retrieving song data:', error);
                     });
-
+                    this.updateQueue();
 
                 }
             },

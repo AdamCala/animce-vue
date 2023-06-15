@@ -14,6 +14,8 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.use(express.static(path.join(__dirname, 'dist')));
+
 app.get('/readFile', (req, res) => {
     const filePath = path.join(__dirname, 'src/assets', 'data.json');
     fs.readFile(filePath, 'utf8', (err, data) => {
@@ -86,6 +88,10 @@ app.post('/writeQueue', (req, res) => {
     
       res.send('File updated successfully');
     });
+});
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
   
 
